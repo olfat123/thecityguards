@@ -387,9 +387,12 @@ class GoogleSitemapGeneratorPage {
 		$r  = '';
 		$r .= "\t<url>\n";
 		$r .= "\t\t<loc>" . $this->escape_xml( esc_url_raw( $this->url ) ) . "</loc>\n";
+
 		if ( $this->last_mod > 0 ) {
-			$r .= "\t\t<lastmod>" . gmdate( 'Y-m-d\TH:i:s+00:00', $this->last_mod ) . "</lastmod>\n";
+			//$r .= "\t\t<lastmod>" . gmdate( 'Y-m-d\TH:i:s+00:00', $this->last_mod ) . "</lastmod>\n";
+			$r .= "\t\t<lastmod>"  . gmdate( 'Y-m-d\TH:i:sP', $this->last_mod ) .  "</lastmod>\n";
 		}
+
 		if ( ! empty( $this->change_freq ) ) {
 			$r .= "\t\t<changefreq>" . $this->change_freq . "</changefreq>\n";
 		}
@@ -397,6 +400,7 @@ class GoogleSitemapGeneratorPage {
 			$r .= "\t\t<priority>" . number_format( $this->priority, 1 ) . "</priority>\n";
 		}
 		$r .= "\t</url>\n";
+		
 		return $r;
 	}
 
@@ -753,7 +757,7 @@ class GoogleSitemapGeneratorPrioByAverageProvider implements Google_Sitemap_Gene
 	public function get_post_priority( $post_id, $comment_count ) {
 
 		// Do not divide by zero !
-		if ( 0 === $this->average ) {
+		if ( 0 === $this->average|| 0.0 === $this->average ) {
 			if ( $comment_count > 0 ) {
 				$priority = 1;
 			} else {
@@ -1336,6 +1340,10 @@ final class GoogleSitemapGenerator {
 		$this->options['sm_b_style_default'] = true; // Use default style .
 		$this->options['sm_b_style']         = ''; // Include a stylesheet in the XML .
 		$this->options['sm_b_baseurl']       = ''; // The base URL of the sitemap .
+		$this->options['sm_b_rewrites2']	 = false; //status updating url rules
+		$this->options['sm_b_indexnow']		 = true; //On indexnow functionality
+		$this->options['sm_b_activate_indexnow'] = false; //On indexnow functionality
+		$this->options['sm_b_index_date'] = ''; //On indexnow date
 		$this->options['sm_b_robots']        = true; // Add sitemap location to WordPress' virtual robots.txt file .
 		$this->options['sm_b_html']          = true; // Include a link to a html version of the sitemap in the XML sitemap .
 		$this->options['sm_b_exclude']       = array(); // List of post / page IDs to exclude .
@@ -1390,6 +1398,7 @@ final class GoogleSitemapGenerator {
 		$this->options['sm_i_supportfeed_cache'] = 0; // Last refresh of support feed .
 		$this->options['sm_links_page']          = 1000; // Link per page support with default value 1000. .
 		$this->options['sm_user_consent']        = false;
+		$this->options['sm_wp_sitemap_status']   = true;
 	}
 
 	/**
@@ -1722,6 +1731,7 @@ final class GoogleSitemapGenerator {
 			//	? '.html' : '.xml' ) . ( $zip ? '.gz' : '' );
 			if($type === 'misc') return trailingslashit( $base_url ) . ( '' === $sm_sitemap_name ? 'sitemap' : $sm_sitemap_name ) . ( $options ? '-' . $options : '' ) . ( $html
 				? '.html' : '.xml' ) . ( $zip ? '.gz' : '' );
+			else if($type === 'main') return trailingslashit( $base_url ). ( substr($_SERVER['REQUEST_URI'], -4) === '.xml' ? '.html' : '.html' ) . ( $zip ? '.gz' : '' );
 			else return trailingslashit( $base_url ) . ( '' !== $sm_sitemap_name ? '' : $sm_sitemap_name ) . ( $options ? '' . $options : '' ) . ( $html
 				? '.html' : '.xml' ) . ( $zip ? '.gz' : '' );
 		} else {
@@ -1741,7 +1751,8 @@ final class GoogleSitemapGenerator {
 		$html = ( isset( $build_options['html'] ) ? $build_options['html'] : false );
 		$zip  = ( isset( $build_options['zip'] ) ? $build_options['zip'] : false );
 		$base_url = get_bloginfo( 'url' );
-		return trailingslashit( $base_url ) . 'sitemap' . ( $html ? '.html' : '.xml' ) . ( $zip ? '.gz' : '' );
+		if($this->get_options()['sm_b_sitemap_name']) $file_name = $this->get_options()['sm_b_sitemap_name'];
+		return trailingslashit( $base_url ) . ($file_name?$file_name:'sitemap') . ( $html ? '.html' : '.xml' ) . ( $zip ? '.gz' : '' );
 	}
 
 	/**
@@ -1912,7 +1923,7 @@ final class GoogleSitemapGenerator {
 		// Do not index the actual XML pages, only process them.
 		// This avoids that the XML sitemaps show up in the search results.
 		if ( ! headers_sent() ) {
-			header( 'X-Robots-Tag: noindex', true, 200 );
+			header( 'X-Robots-Tag: noindex, follow', true, 200 );
 		}
 
 		$this->initate();
@@ -1976,6 +1987,7 @@ final class GoogleSitemapGenerator {
 
 			if ( strpos( $all_params, '-' ) !== false ) {
 				$type   = substr( $all_params, 0, strpos( $all_params, '-' ) );
+				if($type === 'pt' && explode("-", $all_params)[1] === 'externals' ) $type = 'externals';
 				$params = substr( $all_params, strpos( $all_params, '-' ) + 1 );
 			} else {
 				$type = $all_params;
@@ -2165,8 +2177,16 @@ final class GoogleSitemapGenerator {
 			echo ' --> ';
 		}
 		$end_time = microtime( true );
+
 		$end_time = round( $end_time - $start_time, 2 );
-		$this->add_element( new GoogleSitemapGeneratorDebugEntry( 'Request ID: ' . md5( microtime() ) . '; Queries for sitemap: ' . ( $GLOBALS['wpdb']->num_queries - $start_queries ) . '; Total queries: ' . $GLOBALS['wpdb']->num_queries . '; Seconds: $end_time; Memory for sitemap: ' . ( ( memory_get_peak_usage( true ) - $start_memory ) / 1024 / 1024 ) . 'MB; Total memory: ' . ( memory_get_peak_usage( true ) / 1024 / 1024 ) . 'MB' ) );
+		$spent_memory = intval((memory_get_peak_usage( true ) - $start_memory) / 1024);
+		if ($spent_memory > 1023) {
+			$spent_memory = intval($spent_memory / 1024) . 'MB';
+		} else {
+			$spent_memory = ceil($spent_memory) + 1 . 'KB';
+		}
+		//$this->add_element( new GoogleSitemapGeneratorDebugEntry( 'Request ID: ' . md5( microtime() ) . '; Queries for sitemap: ' . ( $GLOBALS['wpdb']->num_queries - $start_queries ) . '; Total queries: ' . $GLOBALS['wpdb']->num_queries . "; Seconds: $end_time; Memory for sitemap: " . ( ( memory_get_peak_usage( true ) - $start_memory ) / 1024 / 1024 ) . 'MB; Total memory: ' . ( memory_get_peak_usage( true ) / 1024 / 1024 ) . 'MB' ) );
+		$this->add_element( new GoogleSitemapGeneratorDebugEntry( 'Request ID: ' . md5( microtime() ) . '; Queries for sitemap: ' . ( $GLOBALS['wpdb']->num_queries - $start_queries ) . '; Total queries: ' . $GLOBALS['wpdb']->num_queries . "; Seconds: $end_time; Memory for sitemap: " . $spent_memory. '; Total memory: ' . ( memory_get_peak_usage( true ) / 1024 / 1024 ) . 'MB' ) );
 	}
 
 	/**
@@ -2179,7 +2199,11 @@ final class GoogleSitemapGenerator {
 		$this->initate();
 		if ( $this->get_option( 'b_robots' ) === true ) {
 
-			$sm_url = $this->get_xml_url();
+			//$sm_url = $this->get_xml_url();
+			$html = ( isset( $build_options['html'] ) ? $build_options['html'] : false );
+			$zip  = ( isset( $build_options['zip'] ) ? $build_options['zip'] : false );
+			if($this->get_option( 'b_sitemap_name' )) $sm_url = trailingslashit( get_bloginfo( 'url' ) ) . ( '' === $this->get_option( 'b_sitemap_name' ) ? '' : $this->get_option( 'b_sitemap_name' ) ) . ( $html ? '.html' : '.xml' ) . ( $zip ? '.gz' : '' );
+			else $sm_url = get_bloginfo( 'url' ) . '/sitemap.xml';
 
 			echo "\nSitemap: " . esc_url( $sm_url ) . "\n";
 		}
@@ -2282,6 +2306,10 @@ final class GoogleSitemapGenerator {
 
 		$ping_url = $this->get_xml_url();
 
+		$baseUrl = substr($ping_url, 0, -4);
+		$kind = substr($ping_url, -4);
+		$ping_url = $baseUrl . $this->get_options()['sm_b_sitemap_name'] . $kind;
+
 		$result = $this->execute_ping( $ping_url, true );
 
 		$post_id = get_transient( 'sm_ping_post_id' );
@@ -2322,18 +2350,19 @@ final class GoogleSitemapGenerator {
 			$pings = array();
 
 			if ( $this->get_option( 'b_ping' ) ) {
-				$pings['google'] = array(
-					'name'  => 'Google',
-					'url'   => 'http://www.google.com/webmasters/sitemaps/ping?sitemap=%s',
+				$pings['bing'] = array(
+					'name'  => 'Bing',
 					'check' => 'successfully',
 				);
 			}
 
 			foreach ( $pings as $service_id => $service ) {
-				$url = str_replace( '%s', rawurlencode( $ping_url ), $service['url'] );
+				//$url = rawurlencode( $ping_url );
+				$url = $ping_url;
 				$status->start_ping( $service_id, $url, $service['name'] );
 
-				$pingres = $this->remote_open( $url );
+				$newUrlToIndex = new GoogleSitemapGeneratorIndexNow();
+				$pingres = $newUrlToIndex->start( $url );
 
 				if ( null === $pingres || false === $pingres || false === strpos( $pingres, $service['check'] ) ) {
 					$status->end_ping( $service_id, false );
@@ -2368,7 +2397,11 @@ final class GoogleSitemapGenerator {
 
 		$urls = array();
 
-		$urls[] = $this->get_xml_url();
+		$ping_url = $this->get_xml_url();
+		$baseUrl = substr($ping_url, 0, -4);
+		$kind = substr($ping_url, -4);
+		$urls[] = $baseUrl . $this->get_options()['sm_b_sitemap_name'] . $kind;
+		//$urls[] = $this->get_xml_url();
 
 		foreach ( $sitemaps as $sitemap ) {
 
@@ -2659,7 +2692,7 @@ final class GoogleSitemapGenerator {
 				require_once $path . $file_name;
 			}
 
-			$this->ui = new $class_name( $this );
+			$this->ui = new $class_name( $this, new GoogleSitemapGeneratorIndexNow() );
 		}
 
 		return $this->ui;

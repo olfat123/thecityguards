@@ -17,6 +17,7 @@ class GoogleSitemapGeneratorUI {
 	 * @var GoogleSitemapGenerator
 	 */
 	private $sg = null;
+	private $index_now = null;
 	/**
 	 * Check if woo commerce is active or not .
 	 *
@@ -32,8 +33,9 @@ class GoogleSitemapGeneratorUI {
 	 *
 	 * @param GoogleSitemapGenerator $sitemap_builder s .
 	 */
-	public function __construct( GoogleSitemapGenerator $sitemap_builder ) {
+	public function __construct( GoogleSitemapGenerator $sitemap_builder, GoogleSitemapGeneratorIndexNow $index_now) {
 		$this->sg = $sitemap_builder;
+		$this->index_now = $index_now;
 	}
 	/**
 	 * Constructor function.
@@ -203,6 +205,14 @@ class GoogleSitemapGeneratorUI {
 		}
 		return $pages;
 	}
+
+	public function get_max_input_vars() {
+		$form_inputs = 40;
+		$max_input_vars = ini_get('max_input_vars');
+
+		return $max_input_vars - $form_inputs - (count($this->sg->get_pages())*5);
+	}
+
 	/**
 	 * Escape.
 	 *
@@ -523,11 +533,15 @@ class GoogleSitemapGeneratorUI {
 					$this->sg->set_option( $k, (bool) sanitize_text_field( wp_unslash( $_POST[ $k ] ) ) );
 				}
 			}
+			GoogleSitemapGeneratorLoader::setup_rewrite_hooks();
+			GoogleSitemapGeneratorLoader::activate_rewrite();
 
 			// Apply page changes from POST.
 			if ( is_super_admin() ) {
 				$this->sg->set_pages( $this->html_apply_pages() );
 			}
+
+			if(!$this->sg->get_option('sm_b_activate_indexnow')) $this->sg->set_option('sm_b_activate_indexnow', true);
 
 			if ( $this->sg->save_options() ) {
 				$message .= __( 'Configuration updated', 'google-sitemap-generator' ) . '<br />';
@@ -543,6 +557,9 @@ class GoogleSitemapGeneratorUI {
 				}
 			}
 		} elseif ( ! empty( $_POST['sm_reset_config'] ) ) { // Pressed Button: Reset Config.
+
+			$options = get_option('sm_options', array());
+
 			check_admin_referer( 'sitemap' );
 			delete_option( 'sm_show_beta_banner' );
 			delete_option( 'sm_beta_banner_discarded_on' );
@@ -551,8 +568,20 @@ class GoogleSitemapGeneratorUI {
 			delete_option( 'sm_user_consent' );
 			delete_option( 'sm_hide_auto_update_banner' );
 			delete_option( 'sm_disabe_other_plugin' );
+
+			if(isset($options['sm_wp_sitemap_status'])) $wp_sitemap_status = $options['sm_wp_sitemap_status'];
+			
 			$this->sg->init_options();
 			$this->sg->save_options();
+
+			$options_new = get_option('sm_options', array());
+			if (isset($wp_sitemap_status) && $wp_sitemap_status === false) {
+				$options_new['sm_wp_sitemap_status'] = false;
+			} else if(isset($wp_sitemap_status) && $wp_sitemap_status === true) {
+				$options_new['sm_wp_sitemap_status'] = true;
+			}
+			update_option('sm_options', $options_new);
+
 			$message .= __( 'The default configuration was restored.', 'google-sitemap-generator' );
 		} elseif ( ! empty( $_GET['sm_delete_old'] ) ) { // Delete old sitemap files.
 			check_admin_referer( 'sitemap' );
@@ -642,7 +671,18 @@ class GoogleSitemapGeneratorUI {
 				return;
 			}
 
-			$this->sg->send_ping();
+			$this->sg->send_ping();    
+			$message = __( 'Ping was executed, please see below for the result.', 'google-sitemap-generator' );
+		} elseif ( ! empty( $_GET['sm_ping_all_subsitemaps'] ) ) {
+			check_admin_referer( 'sitemap' );
+
+				// Check again, just for the case that something went wrong before.
+			if ( ! current_user_can( 'administrator' ) ) {
+				echo '<p>Please log in as admin</p>';
+				return;
+			}
+
+			$this->sg->send_ping_all();    
 			$message = __( 'Ping was executed, please see below for the result.', 'google-sitemap-generator' );
 		} elseif ( get_option( 'sm_beta_opt_in' ) ) {
 			delete_option( 'sm_beta_opt_in' );
@@ -765,6 +805,14 @@ class GoogleSitemapGeneratorUI {
 					</small></a></p>
 					</strong>
 					<div style='clear:right;'></div>
+				</div>
+				<?php
+			}
+
+			if ($this->get_max_input_vars() <= 0) {
+				?>
+				<div class="error">
+					<p><?php echo __('More external pages cannot be added: The max_input_vars value in the PHP configuration has been exceeded, please increase the value and try again.', 'google-sitemap-generator'); ?></p>
 				</div>
 				<?php
 			}
@@ -1057,7 +1105,7 @@ class GoogleSitemapGeneratorUI {
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-support' ) ); ?>'><?php esc_html_e( 'Suggest a Feature', 'google-sitemap-generator' ); ?></a>
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-help' ) ); ?>'><?php esc_html_e( 'View Frequently Asked Questions', 'google-sitemap-generator' ); ?></a>
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-list' ) ); ?>'><?php esc_html_e( 'Follow the Forum', 'google-sitemap-generator' ); ?></a>
-									<!-- <a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-support' ) ); ?>'><?php esc_html_e( 'Visit Support Forum', 'google-sitemap-generator' ); ?></a> -->
+									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-forum' ) ); ?>'><?php esc_html_e( 'Visit Support Forum', 'google-sitemap-generator' ); ?></a>
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-bugs' ) ); ?>'><?php esc_html_e( 'Report a Bug', 'google-sitemap-generator' ); ?></a>
 									<?php
 									if ( __( 'translator_name', 'google-sitemap-generator' ) !== 'translator_name' ) {
@@ -1072,6 +1120,7 @@ class GoogleSitemapGeneratorUI {
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-lswcb' ) ); ?>'><?php esc_html_e( 'Microsoft Bing Blog', 'google-sitemap-generator' ); ?></a>
 									<br />
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-prot' ) ); ?>'><?php esc_html_e( 'Sitemaps Protocol', 'google-sitemap-generator' ); ?></a>
+									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/indexnow-prot' ) ); ?>'><?php esc_html_e( 'IndexNow Protocol', 'google-sitemap-generator' ); ?></a>
 									<a class='sm_button' href='<?php echo esc_url( $this->sg->get_redirect_link( 'projects/wordpress-plugins/google-xml-sitemaps-generator/help' ) ); ?>'><?php esc_html_e( 'Official Sitemaps FAQ', 'google-sitemap-generator' ); ?></a>
 									<?php $this->html_print_box_footer( true ); ?>
 
@@ -1096,12 +1145,14 @@ class GoogleSitemapGeneratorUI {
 
 									$status = GoogleSitemapGeneratorStatus::Load();
 									$head   = __( 'Search engines haven\'t been notified yet', 'google-sitemap-generator' );
-									if ( null !== $status && 0 < $status->get_start_time() ) {
+
+									if ( null !== $status && 0 < $status->get_start_time() && $this->sg->get_option('b_indexnow') ) {
 										$opt = get_option( 'gmt_offset' );
-										$st  = $status->get_start_time() + ( $opt * 3600 );
+										$st = intval($status->get_start_time() + ( $opt * 3600 ));
 										/* translators: %s: search term */
 										$head = str_replace( '%date%', date_i18n( get_option( 'date_format' ), $st ) . ' ' . date_i18n( get_option( 'time_format' ), $st ), esc_html__( 'Result of the last ping, started on %date%.', 'google-sitemap-generator' ) );
 									}
+									else esc_html__( '“Search engines have not been notified yet. Publish or update a post to update your sitemap modification dates and notify IndexNow-compatible search engines.”', 'google-sitemap-generator' );
 
 									$this->html_print_box_header( 'sm_rebuild', $head );
 									?>
@@ -1155,12 +1206,12 @@ class GoogleSitemapGeneratorUI {
 												'strong' => array(),
 											);
 											/* translators: %s: search term */
-											echo '<li>' . wp_kses( str_replace( array( '%1$s', '%2$s' ), $this->sg->get_base_sitemap_url(), __( 'The URL to your sitemap index file is: <a href=\'%1$s\'>%2$s</a>.', 'google-sitemap-generator' ) ), $arr ) . '</li>';
-											if ( null === $status || null === $this->sg->get_option( 'i_tid' ) || '' === $this->sg->get_option( 'i_tid' ) ) {
-												echo '<li>' . esc_html__( 'Search engines haven\'t been notified yet. Write a post to let them know about your sitemap.', 'google-sitemap-generator' ) . '</li>';
+											echo '<li>' . wp_kses( str_replace( array( '%1$s', '%2$s' ), isset($custom_sitemap_name['sm_b_sitemap_name'])?home_url() .'/'. $custom_sitemap_name['sm_b_sitemap_name'] . '.xml':$this->sg->get_base_sitemap_url(), __( 'The URL to your sitemap index file is: <a href=\'%1$s\'>%2$s</a>.', 'google-sitemap-generator' ) ), $arr ) . '</li>';
+											if ( !$this->sg->get_option('b_indexnow') ) {
+												//echo '<li>' . esc_html__( 'Search engines haven\'t been notified yet. Write a post to let them know about your sitemap.', 'google-sitemap-generator' ) . '</li>';
 											} else {
 
-												$services = $status->get_used_ping_services();
+												$services = (null !== $status) ? $status->get_used_ping_services() : array();
 
 												foreach ( $services as $service ) {
 													$name = $status->get_service_name( $service );
@@ -1181,15 +1232,15 @@ class GoogleSitemapGeneratorUI {
 														}
 													} else {
 														/* translators: %s: search term */
-														echo '<li class=\'sm_error\'>' . wp_kses( str_replace( array( '%s', '%name%' ), array( wp_nonce_url( $this->sg->get_back_link() . '&sm_ping_service=' . $service . '&noheader=true', 'sitemap' ), $name ), __( 'There was a problem while notifying %name%. <a href=\'%s\' target=\'_blank\'>View result</a>', 'google-sitemap-generator' ) ), $arr ) . '</li>';
+														//echo '<li class=\'sm_error\'>' . wp_kses( str_replace( array( '%s', '%name%' ), array( wp_nonce_url( $this->sg->get_back_link() . '&sm_ping_service=' . $service . '&noheader=true', 'sitemap' ), $name ), __( 'There was a problem while notifying %name%. <a href=\'%s\' target=\'_blank\'>View result</a>', 'google-sitemap-generator' ) ), $arr ) . '</li>';
 													}
 												}
 											}
 
 											?>
-											<?php if ( $this->sg->get_option( 'b_ping' ) ) : ?>
+											<?php if ($this->sg->get_option('b_indexnow')) : ?>
 												<li>
-													Notify Search Engines about <a id="ping_google" href='<?php echo esc_url( wp_nonce_url( $this->sg->get_back_link() . '&sm_ping_main=true', 'sitemap' ) ); ?>'>your sitemap </a> or <a id="ping_google" href='<?php echo esc_url( wp_nonce_url( $this->sg->get_back_link() . '&sm_ping_main=true', 'sitemap' ) ); ?>'>your main sitemap and all sub-sitemaps</a> now.
+													Notify Search Engines about <a id="ping_google" href='<?php echo esc_url( wp_nonce_url( $this->sg->get_back_link() . '&sm_ping_main=true', 'sitemap' ) ); ?>'>your sitemap </a> or <a id="ping_google" href='<?php echo esc_url( wp_nonce_url( $this->sg->get_back_link() . '&sm_ping_all_subsitemaps=true', 'sitemap' ) ); ?>'>your main sitemap and all sub-sitemaps</a> now.
 												</li>
 											<?php endif; ?>
 											<?php
@@ -1246,9 +1297,9 @@ class GoogleSitemapGeneratorUI {
 									<!-- Basic Options -->
 									<?php $this->html_print_box_header( 'sm_basic_options', __( 'Basic Options', 'google-sitemap-generator' ) ); ?>
 
-									<b><?php esc_html_e( 'Update notification:', 'google-sitemap-generator' ); ?></b> <a href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-help-options-ping' ) ); ?>' target='_blank'><?php esc_html_e( 'Learn more', 'google-sitemap-generator' ); ?></a>
+									<b><?php esc_html_e( 'Search Engine Updates:', 'google-sitemap-generator' ); ?></b> <a href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-help-options-ping' ) ); ?>' target='_blank'><?php esc_html_e( 'Learn more', 'google-sitemap-generator' ); ?></a>
 									<ul>
-										<li>
+										<!-- <li>
 											<input type='checkbox' id='sm_b_ping' name='sm_b_ping' <?php echo ( $this->sg->get_option( 'b_ping' ) === true ? 'checked=\'checked\'' : '' ); ?> />
 											<label for='sm_b_ping'><?php esc_html_e( 'Notify Google about updates of your site', 'google-sitemap-generator' ); ?></label><br />
 											<small>
@@ -1263,6 +1314,31 @@ class GoogleSitemapGeneratorUI {
 											);
 											/* translators: %s: search term */
 											echo wp_kses( str_replace( '%s', $this->sg->get_redirect_link( 'redir/sitemap-gwt' ), __( 'No registration required, but you can join the <a href=\'%s\' target=\'_blank\'>Google Search Console</a> to check crawling statistics.', 'google-sitemap-generator' ) ), $arr );
+											?>
+											</small>
+										</li> -->
+										<li>
+											<label for='sm_b_indexnow'>
+												<input type='checkbox' id='sm_b_indexnow' name='sm_b_indexnow' <?php echo ( $this->sg->get_option('b_indexnow') ? 'checked=\'checked\'' : '' ); ?> />
+												<?php esc_html_e( 'Use IndexNow Protocol to notify Microsoft Bing, Seznam.cz, Naver, and Yandex search engines about updates to your site', 'google-sitemap-generator' ); ?>
+											</label><br />
+											<small>
+											<?php
+											$arr = array(
+												'br'     => array(),
+												'p'      => array(),
+												'a'      => array(
+													'href' => array(),
+												),
+												'strong' => array(),
+											);
+											if ($this->sg->get_option('b_indexnow') && 
+												$api_key = $this->index_now->getApiKey()) {
+												esc_html_e(sprintf(__('Api Key: %s', 'google-sitemap-generator'), $api_key));
+												echo '<br/>';
+											}
+											/* translators: %s: search term */
+											echo wp_kses( str_replace( '%s', $this->sg->get_redirect_link( 'redir/sitemap-gwb/' ), __( 'No registration required, however, you can join the <a href=\'%s\' target=\'_blank\'>Microsoft Bing Webmaster Tools</a> for more crawling details.', 'google-sitemap-generator' ) ), $arr );
 											?>
 											</small>
 										</li>
@@ -1304,11 +1380,11 @@ class GoogleSitemapGeneratorUI {
 													<label for='sm_b_style_default'><input <?php echo ( $use_def_style ? 'checked=\'checked\' ' : '' ); ?> type='checkbox' id='sm_b_style_default' name='sm_b_style_default' onclick='document.getElementById("sm_b_style").disabled = this.checked;' /> <?php esc_html_e( 'Use default', 'google-sitemap-generator' ); ?></label> <?php endif; ?>
 											</li>
 											<li>
-												<label for='sm_b_baseurl'><?php esc_html_e( 'Override the base URL of the sitemap:', 'google-sitemap-generator' ); ?> <input type='text' name='sm_b_baseurl' id='sm_b_baseurl' value='<?php echo esc_attr( $this->sg->get_option( 'b_baseurl' ) ); ?>' /></label><br />
+												<label for='sm_b_baseurl'><?php esc_html_e( 'Override the base URL of the sitemap:', 'google-sitemap-generator' ); ?> <input type='text' name='sm_b_baseurl' id='sm_b_baseurl' value='<?php echo esc_attr( isset($custom_sitemap_name['sm_b_baseurl'])?$custom_sitemap_name['sm_b_baseurl']:$this->sg->get_option( 'b_baseurl' ) ); ?>' /></label><br />
 												<small><?php esc_html_e( 'Use this if your site is in a sub-directory, but you want the sitemap be located in the root. Requires .htaccess modification.', 'google-sitemap-generator' ); ?> <a href='<?php echo esc_url( $this->sg->get_redirect_link( 'redir/sitemap-help-options-adv-baseurl' ) ); ?>' target='_blank'><?php esc_html_e( 'Learn more', 'google-sitemap-generator' ); ?></a></small>
 											</li>
 											<li>
-												<label for='sm_b_sitemap_name'><?php esc_html_e( 'Override the file name of the sitemap:', 'google-sitemap-generator' ); ?> <input type='text' name='sm_b_sitemap_name' id='sm_b_sitemap_name' value='<?php echo esc_attr( $this->sg->get_option( 'b_sitemap_name' ) ); ?>' /></label><br />
+												<label for='sm_b_sitemap_name'><?php esc_html_e( 'Override the file name of the sitemap:', 'google-sitemap-generator' ); ?> <input type='text' name='sm_b_sitemap_name' id='sm_b_sitemap_name' value='<?php echo esc_attr( isset($custom_sitemap_name['sm_b_sitemap_name'])?$custom_sitemap_name['sm_b_sitemap_name']:$this->sg->get_option( 'b_sitemap_name' ) ); ?>' /></label><br />
 												<small><?php esc_html_e( 'Use this if you want to change the sitemap file name', 'google-sitemap-generator' ); ?> <a href='<?php echo esc_url( $this->sg->get_redirect_link( 'sitemap-help-options-adv-baseurl' ) ); ?>' target='_blank'><?php esc_html_e( 'Learn more', 'google-sitemap-generator' ); ?></a></small>
 											</li>
 											<li>
