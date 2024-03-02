@@ -116,73 +116,6 @@ migaloz_register_taxonomy('TAX NAME', 'POST TYPE', [
 ]);
 ```
 
-# Customizer
-
-- Use only ACF in custom posts, for pages use customizer
-
-```php
-// Add New Panel
-migaloz_add_panel('panel_id', 'My Panel');
-
-// Add Section to Panel
-migaloz_add_section('section_id', 'My Section', 'panel_id');
-```
-
-- Avaiable Fields Types
-    - text
-    - textarea
-    - editor
-    - image
-    - select
-    - repeater
-
-```php
-migaloz_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID');
-```
-
-- To make the field multi language
-
-```php
-migaloz_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
-    'multi_language' => true,
-]);
-```
-
-- Select Field
-
-```php
-migaloz_add_field('select', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
-    'choices' => [
-        'value_1'=>'Label 1',
-        'value_2'=>'Label 2',
-    ],
-]);
-```
-
-- Repeater Field
-
-```php
-migaloz_add_field('repeater', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
-    'fields' => [
-        'my_repeater_text' => [
-            'type' => 'text',
-            'label' => 'Title',
-        ],
-        'my_repeater_textarea' => [
-            'type' => 'textarea',
-            'label' => 'Description',
-        ],
-    ],
-    'row_label' => 'my item',
-]);
-```
-
-- To fetch customizer field value, just use this function and it will return the value in current language
-
-```php
-migaloz_get_option('FIELD_ID');
-```
-
 # Standards
 
 - For all custom post type listing use component to render it
@@ -205,7 +138,7 @@ $news = new \WP_Query([
 
 // Render news in the blade
 @foreach ($news->get_posts() as $item)
-    <x-news id="{{ $item }}"></x-vacancy>
+    <x-news id="{{ $item }}"></x-news>
 @endforeach
 
 ```
@@ -240,35 +173,6 @@ migaloz_get_date();
 ```
 
 - Keep all php code in the composers and in the blade just loop and print variables
-- For language switcher you can use **$languages** global variable, here is example of this variable content
-
-```php
-[
-    'current' => [
-        'code' => 'en',
-        'name' => 'English'
-    ],
-    'anoter' => [
-        'code => 'ar',
-        'name' => 'عربي',
-        'link' => 'https://example.com/ar'
-    ]
-]
-```
-
-- In Contact Form 7 when you write the html for the form, minify it using any online minifier tool to prevent extra
-  spaces
-- In Contact Form 7 when you have a select , add a textarea field in customizer to make the admin control the options
-
-```php
-// Contact Form 7
-[select* subject first_as_label]
-
-// Customizer
-migaloz_add_field('textarea', 'contact_form_subject', 'Options for "Subject"', 'SECTION ID', [
-    'description' => 'Each option in new line',
-    'multi_language' => true,
-]);
 
 // In theme-helpers.php you fill cf7_dynamic_select_field()
 // Modify it and add the following code
