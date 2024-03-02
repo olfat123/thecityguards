@@ -1,0 +1,7 @@
+wp-config.php
+wp-content/uploads
+wp-content/vendor
+.DS_Store
+wp-content/.DS_Store
+wp-content/themes/.DS_Store
+wp-content/cache/acorn

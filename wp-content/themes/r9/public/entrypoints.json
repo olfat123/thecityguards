@@ -1,0 +1,17 @@
+{
+  "app": {
+    "js": [
+    ],
+    "css": [
+    ],
+    "dependencies": []
+  },
+  "editor": {
+    "js": [
+    ],
+    "css": [
+    ],
+    "dependencies": [
+    ]
+  }
+}
