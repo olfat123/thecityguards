@@ -1,0 +1,11 @@
+/* Start entry statuses */
+.frm-entry-status-2 { 
+	color: #0E566C;
+	background: #BEDFE6;
+}/* 2 is In Progress status */
+
+.frm-entry-status-3 {
+	color: #973937;
+	background: #EBCCCC;
+}/* 3 is Abandoned  status */
+/* End entry statuses */
