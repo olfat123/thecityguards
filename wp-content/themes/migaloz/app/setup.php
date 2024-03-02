@@ -15,9 +15,9 @@ use function Roots\bundle;
  * @return void
  */
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('r9-fonts', "https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&amp;family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;family=Oswald:wght@200;300;400;500;600;700&amp;display=swap");
-    wp_enqueue_style('r9-style', get_theme_file_uri('/public/stylesheets/style.min.css'));
-    wp_enqueue_script('r9-script', get_theme_file_uri('/public/scripts/script.min.js'), [], '1.0', true);
+    wp_enqueue_style('migaloz-fonts', "https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&amp;family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;family=Oswald:wght@200;300;400;500;600;700&amp;display=swap");
+    wp_enqueue_style('migaloz-style', get_theme_file_uri('/public/stylesheets/style.min.css'));
+    wp_enqueue_script('migaloz-script', get_theme_file_uri('/public/scripts/script.min.js'), [], '1.0', true);
 }, 100);
 
 /**

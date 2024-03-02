@@ -24,7 +24,7 @@ class SingleNews extends Composer
      */
     public function with()
     {
-        $date = r9_get_date();
+        $date = migaloz_get_date();
         $related_news = new \WP_Query([
             'post_type' => 'news',
             'post_status' => 'publish',

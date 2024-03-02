@@ -23,14 +23,13 @@ class PageHeader extends Composer
     public function with()
     {
         $title = get_the_title();
-        $pages = r9_pages();
         $current_id = get_the_ID();
         $parent_page_id = wp_get_post_parent_id($current_id);
         // Get header background from ACF
-        $page_header_image = get_field('header_background', r9_get_original_object_id($parent_page_id) ?: r9_get_original_object_id($current_id));
+        $page_header_image = get_field('header_background');
         $breadcrumbs = [
             [
-                'title' => __('Home', 'r9'),
+                'title' => __('Home', 'migaloz'),
                 'link' => home_url(),
             ],
         ];
@@ -51,7 +50,7 @@ class PageHeader extends Composer
                 'title' => get_the_title($pages['careers']),
                 'link' => get_permalink($pages['careers']),
             ];
-            $title = __('Vacancy Details', 'r9');
+            $title = __('Vacancy Details', 'migaloz');
             $page_header_image = get_field('header_background', $pages['careers']);
         } elseif (is_singular('news')) {
             $breadcrumbs[] = [
@@ -67,7 +66,7 @@ class PageHeader extends Composer
 
         // If post thumbnail is also empty, get the default from theme options
         if (empty($page_header_image)) {
-            $page_header_image = r9_get_option('default_header_background');
+            $page_header_image = get_option('default_header_background');
         }
         return [
             'page_header_image' => $page_header_image,

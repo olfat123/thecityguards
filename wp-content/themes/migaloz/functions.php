@@ -55,7 +55,7 @@ if (!function_exists('\Roots\bootloader')) {
 | is registered alongside Sage.
 |
 */
-collect(['setup', 'filters', 'customizer', 'menus', 'theme-helpers', 'setup-helpers', 'custom-posts', 'admin-permissions'])
+collect(['setup', 'filters', 'menus', 'theme-helpers', 'setup-helpers', 'custom-posts', 'admin-permissions'])
     ->each(function ($file) {
         if (!locate_template($file = "app/{$file}.php", true, true)) {
             wp_die(

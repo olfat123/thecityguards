@@ -1,5 +1,5 @@
 <?php
-function r9_roles()
+function migaloz_roles()
 {
     if(is_admin()){
         $capabilities = get_role('administrator')->capabilities;
@@ -28,7 +28,7 @@ function r9_roles()
 
 }
 
-r9_roles();
+migaloz_roles();
 $user = wp_get_current_user();
 function has_client_role()
 {
@@ -48,7 +48,7 @@ function has_admin_role()
     return false;
 }
 
-function r9_remove_toolbar_menu()
+function migaloz_remove_toolbar_menu()
 {
     if (is_admin() && !has_admin_role()) {
         global $wp_admin_bar;
@@ -63,7 +63,7 @@ function r9_remove_toolbar_menu()
     }
 }
 
-add_action('wp_before_admin_bar_render', 'r9_remove_toolbar_menu', 999);
+add_action('wp_before_admin_bar_render', 'migaloz_remove_toolbar_menu', 999);
 function hide_dashboard_tabs()
 {
     global $submenu;

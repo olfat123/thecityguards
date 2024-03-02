@@ -4,11 +4,11 @@
 - Clone the new repo
 - Run **composer install** in the theme folder
 - Place the asset provided by UI in the public folder
-- Go to wp-content/themes/r9/app/setup.php and adjust your assets
+- Go to wp-content/themes/migaloz/app/setup.php and adjust your assets
 - Create empty database in phpmyadmin
 - Open the project in the browser localhost to start wordpress installer
-- Make the table prefix **wp_r9** followed by today date, example: today is 16 Dec, Prefix: **wp_r91612_**
-- Make the admin username: r9_admin and use the strong generated password
+- Make the table prefix **wp_migaloz** followed by today date, example: today is 16 Dec, Prefix: **wp_migaloz1612_**
+- Make the admin username: migaloz_admin and use the strong generated password
 - Activate Road9 Media Theme
 - Activate needed plugins
 - Go to Settings -> Permalinks and select post-name option
@@ -50,8 +50,8 @@
 
 - Delete default WordPress pages
 - Add your website pages with adding template blade for each one
-- Save the id of each page in r9_pages() function
-- Modify $menu in wp-content/themes/r9/app/View/Composers/App.php to adjust your menu items
+- Save the id of each page in migaloz_pages() function
+- Modify $menu in wp-content/themes/migaloz/app/View/Composers/App.php to adjust your menu items
 
 # Custom Post Type
 
@@ -79,14 +79,14 @@ register_post_type('POST TYPE', [
   this function to create standard post type
 
 ```php
-r9_register_post_type('POST TYPE')
+migaloz_register_post_type('POST TYPE')
 ```
 
 - You can pass array of $args to overwrite the custom post settings
 - If you want for example disable thumbnail
 
 ```php
-r9_register_post_type('POST TYPE WITHOUT THUMBNAIL',[
+migaloz_register_post_type('POST TYPE WITHOUT THUMBNAIL',[
     'thumbnail' => false
 ])
 ```
@@ -111,7 +111,7 @@ r9_register_post_type('POST TYPE WITHOUT THUMBNAIL',[
 - Same as custom post types
 
 ```php
-r9_register_taxonomy('TAX NAME', 'POST TYPE', [
+migaloz_register_taxonomy('TAX NAME', 'POST TYPE', [
     'label' => 'LABEL'
 ]);
 ```
@@ -122,10 +122,10 @@ r9_register_taxonomy('TAX NAME', 'POST TYPE', [
 
 ```php
 // Add New Panel
-r9_add_panel('panel_id', 'My Panel');
+migaloz_add_panel('panel_id', 'My Panel');
 
 // Add Section to Panel
-r9_add_section('section_id', 'My Section', 'panel_id');
+migaloz_add_section('section_id', 'My Section', 'panel_id');
 ```
 
 - Avaiable Fields Types
@@ -137,13 +137,13 @@ r9_add_section('section_id', 'My Section', 'panel_id');
     - repeater
 
 ```php
-r9_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID');
+migaloz_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID');
 ```
 
 - To make the field multi language
 
 ```php
-r9_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
+migaloz_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
     'multi_language' => true,
 ]);
 ```
@@ -151,7 +151,7 @@ r9_add_field('FIELD TYPE', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
 - Select Field
 
 ```php
-r9_add_field('select', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
+migaloz_add_field('select', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
     'choices' => [
         'value_1'=>'Label 1',
         'value_2'=>'Label 2',
@@ -162,7 +162,7 @@ r9_add_field('select', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
 - Repeater Field
 
 ```php
-r9_add_field('repeater', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
+migaloz_add_field('repeater', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
     'fields' => [
         'my_repeater_text' => [
             'type' => 'text',
@@ -180,7 +180,7 @@ r9_add_field('repeater', 'FIELD ID', 'FIELD LABEL', 'SECTION ID', [
 - To fetch customizer field value, just use this function and it will return the value in current language
 
 ```php
-r9_get_option('FIELD_ID');
+migaloz_get_option('FIELD_ID');
 ```
 
 # Standards
@@ -215,7 +215,7 @@ $news = new \WP_Query([
   version
 
 ```php
-get_field('image', r9_get_original_object_id(get_the_ID(), 'POST TYPE'))
+get_field('image', migaloz_get_original_object_id(get_the_ID(), 'POST TYPE'))
 ```
 
 - To display date use the following function to get the date translated
@@ -224,19 +224,19 @@ get_field('image', r9_get_original_object_id(get_the_ID(), 'POST TYPE'))
 // This function has two paramaters
 // $date: the default is get_the_date(), you can pass the paramater if you want only overwrite
 // $format: the default is J F Y, you can pass the paramater if you want only overwrite
-r9_get_date();
+migaloz_get_date();
 ```
 
 - In laravel blade don't use the following code to print language variable
 
 ```php
-{{ __('TEXT HERE', 'r9') }}
+{{ __('TEXT HERE', 'migaloz') }}
 ```
 
 - Use this instead so WPML can scan it
 
 ```php
-<?php echo __('TEXT HERE', 'r9') ?>
+<?php echo __('TEXT HERE', 'migaloz') ?>
 ```
 
 - Keep all php code in the composers and in the blade just loop and print variables
@@ -265,7 +265,7 @@ r9_get_date();
 [select* subject first_as_label]
 
 // Customizer
-r9_add_field('textarea', 'contact_form_subject', 'Options for "Subject"', 'SECTION ID', [
+migaloz_add_field('textarea', 'contact_form_subject', 'Options for "Subject"', 'SECTION ID', [
     'description' => 'Each option in new line',
     'multi_language' => true,
 ]);
@@ -273,7 +273,7 @@ r9_add_field('textarea', 'contact_form_subject', 'Options for "Subject"', 'SECTI
 // In theme-helpers.php you fill cf7_dynamic_select_field()
 // Modify it and add the following code
 if ($tag['name'] == 'subject') {
-    $tag['raw_values'] = $tag['values'] = r9_get_form_select_options('contact_form_subject', __('Subject*', 'r9'));
+    $tag['raw_values'] = $tag['values'] = migaloz_get_form_select_options('contact_form_subject', __('Subject*', 'migaloz'));
 }
 
 ```

@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Str;
 
-function r9_register_post_type($post_type, $args = [])
+function migaloz_register_post_type($post_type, $args = [])
 {
     $single_label = $args['single_label'] ?? Str::title(str_replace('_', ' ', $post_type));
     $plural_label = $args['plural_label'] ?? Str::plural($single_label);
@@ -39,7 +39,7 @@ function r9_register_post_type($post_type, $args = [])
     ]);
 }
 
-function r9_register_taxonomy($taxonomy, $post_type, $args = [])
+function migaloz_register_taxonomy($taxonomy, $post_type, $args = [])
 {
     $defaults = [
         'label' => Str::title(str_replace('_', ' ', $taxonomy)),
@@ -57,7 +57,7 @@ function r9_register_taxonomy($taxonomy, $post_type, $args = [])
     );
 }
 
-function r9_add_panel($id, $title, $priority = null)
+function migaloz_add_panel($id, $title, $priority = null)
 {
     new \Kirki\Panel(
         $id,
@@ -68,7 +68,7 @@ function r9_add_panel($id, $title, $priority = null)
     );
 }
 
-function r9_add_section($id, $title, $panel_id = null, $priority = 1)
+function migaloz_add_section($id, $title, $panel_id = null, $priority = 1)
 {
     new \Kirki\Section(
         $id,
@@ -83,7 +83,7 @@ function r9_add_section($id, $title, $panel_id = null, $priority = 1)
 /*
  * https://docs.themeum.com/kirki/controls/
  */
-function r9_add_field($type, $id, $label, $section, $args = [])
+function migaloz_add_field($type, $id, $label, $section, $args = [])
 {
     $defaults = [
         'fields' => [],

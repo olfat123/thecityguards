@@ -23,34 +23,8 @@ class App extends Composer
      */
     public function with()
     {
-        $pages = r9_pages();
-        $languages = r9_get_languages();
-        $menu = [
-            'about' => [
-                'title' => get_the_title($pages['about']),
-                'is_active' => is_page($pages['about']),
-                'link' => rtrim(get_the_permalink($pages['about']), '/'),
-                'children' => [],
-            ],
-            'news' => [
-                'title' => get_the_title($pages['news']),
-                'is_active' => is_page($pages['news']),
-                'link' => rtrim(get_the_permalink($pages['news']), '/'),
-                'children' => [],
-            ],
-            'careers' => [
-                'title' => get_the_title($pages['careers']),
-                'is_active' => is_page($pages['careers']),
-                'link' => rtrim(get_the_permalink($pages['careers']), '/'),
-                'children' => [],
-            ],
-            'contact' => [
-                'title' => get_the_title($pages['contact']),
-                'is_active' => is_page($pages['contact']),
-                'link' => rtrim(get_the_permalink($pages['contact']), '/'),
-                'children' => [],
-            ],
-        ];
+        $menu = get_main_menu();
+
         $social_links = [];
         if ($item = get_theme_mod('facebook')) {
             $social_links[] = [
@@ -94,7 +68,6 @@ class App extends Composer
         }
         return [
             'siteName' => $this->siteName(),
-            'languages' => $languages,
             'menu' => $menu,
             'white_logo' => get_theme_mod('white_logo'),
             'colored_logo' => get_theme_mod('colored_logo'),

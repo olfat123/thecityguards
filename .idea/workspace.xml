@@ -3,11 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="980f960b-2ab8-4474-b718-cdaac996bd12" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wp-content/themes/r9/app/View/Composers/App.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/r9/app/View/Composers/App.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wp-content/themes/r9/app/View/Composers/SingleNews.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/r9/app/View/Composers/SingleNews.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wp-content/themes/r9/app/theme-helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/r9/app/theme-helpers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wp-content/themes/r9/resources/views/single.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/r9/resources/views/single.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wp-content/themes/r9/resources/views/template-news.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/r9/resources/views/template-news.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wp-content/themes/migaloz/app/View/Composers/App.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/migaloz/app/View/Composers/App.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wp-content/themes/migaloz/app/View/Composers/SingleNews.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/migaloz/app/View/Composers/SingleNews.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wp-content/themes/migaloz/app/theme-helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/migaloz/app/theme-helpers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wp-content/themes/migaloz/resources/views/single.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/migaloz/resources/views/single.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wp-content/themes/migaloz/resources/views/template-news.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/wp-content/themes/migaloz/resources/views/template-news.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

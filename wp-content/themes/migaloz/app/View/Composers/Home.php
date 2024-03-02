@@ -22,14 +22,11 @@ class Home extends Composer
      */
     public function with()
     {
-        $languages = r9_get_languages();
-        $current_lang = $languages['current']['code'];
-        $other_lang = $languages['another']['code'];
         $slides = [];
-        if (r9_get_option('home_intro_slides')) {
-            foreach (r9_get_option('home_intro_slides') as $item) {
-                $title = $item['title_' . $current_lang] ?: $item['title_' . $other_lang];
-                $content = $item['content_' . $current_lang] ?: $item['content_' . $other_lang];
+        if (get_option('home_intro_slides')) {
+            foreach (get_option('home_intro_slides') as $item) {
+                $title = $item['title'] ?: $item['title'];
+                $content = $item['content'] ?: $item['content'];
                 $slides[] = array_merge($item, [
                     'title' => $title,
                     'content' => $content,
